@@ -45,12 +45,16 @@ class GitRepo(TaskProvider):
     
     def do_task(self):
         subprocess.run(f"cat {self.task_file} >> {os.path.join(self.local_path, "history")}", shell=True)
-        self.repo.index.add("history")
+        subprocess.run(f"cat {self.task_file} > {os.path.join(self.local_path, "running")}", shell=True)
+        self.repo.index.remove(["task.sh"], working_tree=True)
+        self.repo.index.add(["history", "running"])
         self.repo.index.commit("New task completed: {time.now()}")
         self.pull()
         self.push()
-        subprocess.run(f"bash {self.task_file}", shell=True)
-        self.repo.index.remove(["task.sh"], working_tree=True)
+        output_file = f"output_{time.now()}"
+        subprocess.run(f"bash {self.task_file} > {os.path.join(self.local_path, output_file)}", shell=True)
+        self.repo.index.add(output_file)
+        self.repo.index.remove(["running"], working_tree=True)
         self.repo.index.commit("Removed task file: {time.now()}")
         self.push()
     
