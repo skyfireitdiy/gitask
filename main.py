@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from time import sleep
+from datetime import datetime
 from git import Repo
 from git.exc import NoSuchPathError
 import subprocess
@@ -48,14 +49,14 @@ class GitRepo(TaskProvider):
         subprocess.run(f"cat {self.task_file} > {os.path.join(self.local_path, "running")}", shell=True)
         self.repo.index.remove(["task.sh"], working_tree=True)
         self.repo.index.add(["history", "running"])
-        self.repo.index.commit(f"New task completed: {time.now()}")
+        self.repo.index.commit(f"New task completed: {datetime.now().strftime("%D %T")}")
         self.pull()
         self.push()
-        output_file = f"output_{time.now()}"
+        output_file = f"output_{datetime.now().strftime("%D %T")}"
         subprocess.run(f"bash {self.task_file} > {os.path.join(self.local_path, output_file)}", shell=True)
         self.repo.index.add(output_file)
         self.repo.index.remove(["running"], working_tree=True)
-        self.repo.index.commit(f"Removed task file: {time.now()}")
+        self.repo.index.commit(f"Removed task file: {datetime.now().strftime("%D %T")}")
         self.push()
 
     def run_task(self):
